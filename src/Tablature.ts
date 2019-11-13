@@ -1,10 +1,27 @@
 import { Flow } from "vexflow";
-import { TabSection, TabNote } from "./Note"
 import { TabInterative } from "./TablatureBase"
-import { utils } from "./utils"
+import { utils, Callbacks } from "./utils"
+
+interface eventCallBackInterface {
+    noteclick: (section: number , note: number , string: number, position: number[], currentTarget: SVGElement) => any;
+    keydown: (key: string, keyCode: number) => any;
+    mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
+    noteshiftclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
+    notealtclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
+    notectrlclcik: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
+    mousedown: (x: number, y: number) => any;
+    mousemove: (x: number, y: number) => any;
+    mouseup: (x: number, y: number) => any;
+    sectionhover: (section: number) => any;
+    sectionhout: (section: number) => any;
+    sectionclick: (section: number, string: number) => any;
+}
+
 export class Tablature extends TabInterative{
     readonly lengthPerBeat: number = 4;
     readonly beatPerSection: number = 4;
+    private callbacks: Callbacks;
     private basicNoteNumber = 8; // mini note number for every section to calculate width;
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}){
         super();
@@ -19,9 +36,25 @@ export class Tablature extends TabInterative{
             "user-select": "none",
         });
         utils.setAttributes(this.domElement, {tabindex: "-1"});
+        this.callbacks = new Callbacks([
+            "noteclick", 
+            "noteshiftclick", 
+            "notealtclick", 
+            "notectrlclick",
+            "keydown", 
+            "mouseovernote", 
+            "mouseoutnote", 
+            "mousedown", 
+            "mousemove", 
+            "mouseup",
+            "rightclick",
+            "sectionhover",
+            "sectionhout",
+            "sectionclick",
+        ]);
 
         this.renderer.resize(this.width, 600);
-        this.context.setFont("Arial", 10, 12).setBackgroundFillStyle("rgba(255, 255, 255,0.0)");
+        this.context.setFont("Arial", 10, 12).setBackgroundFillStyle("rgba(255, 0, 0, 0.0)");
         this.context.createLayer("/sheet");
         this.context.createLayer("/note");
     }
@@ -41,6 +74,12 @@ export class Tablature extends TabInterative{
                 this.drawSectionsOfLine(l);
             }
             this.dritySection.clear();
+        }
+    }
+
+    on<k extends keyof eventCallBackInterface>(ename: k, cbk: eventCallBackInterface[k]) {
+        if(ename in this.callbacks) {
+            this.callbacks[ename].push(cbk);
         }
     }
 
@@ -64,7 +103,7 @@ export class Tablature extends TabInterative{
             if(j == 0) noteNumber += 2;
             let width = this.lineWidth * (noteNumber) / totalNote;
             let stave = this.drawSection(sect, x, y, width, j === 0);
-            this.drawNotesOfSection(stave, sect);
+            this.drawNotesOfSection(stave, sect, width);
             x += width;
         }
     }
@@ -88,27 +127,45 @@ export class Tablature extends TabInterative{
         return stave;
     }
 
-    private drawNotesOfSection(stave: Flow.TabStave, section: number){
+    private drawNotesOfSection(stave: Flow.TabStave, section: number, sectionWidth: number = 0){
         let flowNotes: Flow.TabNote[] = [];
+        let totalNoteLength = 0;
         for(let note of this.notes[section]){
-            flowNotes.push(note.makeFlowTabNote());
+            totalNoteLength += 1/note.noteValue;
+        }
+        for(let note of this.notes[section]){
+            let ew = (1/note.noteValue) / totalNoteLength * (sectionWidth - 150);
+                flowNotes.push(note.makeFlowTabNote(ew));
         }
         this.context.createLayer(`/note/${section}`);
         let layer = this.context.useLayer(`/note/${section}`);
         layer.clear();
         Flow.Formatter.FormatAndDraw(this.context, stave, flowNotes);
         let rects = Array.from(layer.svg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "rect"));
-        //store note geometry data
-        for(let k = 0; k < rects.length; k++){
-            let ni = Math.floor(k/6);
-            if(!this.calTabData.sections[section].notes[ni])
-                this.calTabData.sections[section].notes[ni] = {string: []}
-            this.calTabData.sections[section].notes[ni].string.push({
-                fret: this.notes[section][ni].stringContent[k%6],
-                x: Number(rects[k].getAttribute("x")), 
-                y: Number(rects[k].getAttribute("x")), 
-                width: Number(rects[k].dataset.textWidth)
-            });
+        //store note geometry data and add evnet callback
+        let k = 0;
+        for(let i = 0; i < layer.svg.children.length; i++){
+            let element = layer.svg.children[i] as SVGElement;
+            if(element.tagName === "text"){
+                utils.setStyle(element, {"pointer-events": "none"});
+            }else if(element.tagName === "rect"){
+                const ni = Math.floor(k/6);
+                // data on element is top-left position and we want center position
+                const x = Number(element.getAttribute("x")) + Number(element.dataset.textWidth) / 2 + 2;
+                const y = Number(element.getAttribute("y")) + 4;
+                if(!this.calTabData.sections[section].notes[ni])
+                    this.calTabData.sections[section].notes[ni] = {string: []}
+                this.calTabData.sections[section].notes[ni].string.push({
+                    fret: this.notes[section][ni].stringContent[k%6],
+                    x: x, 
+                    y: y, 
+                    width: Number(element.dataset.textWidth)
+                });
+                element.addEventListener("click", ev => {
+                    this.callbacks["noteclick"].callAll(section, ni, k%6, [x, y], ev.currentTarget);
+                })
+                k++;
+            }
         }
     }
 
