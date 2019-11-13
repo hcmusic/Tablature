@@ -15,7 +15,8 @@ export class Tablature extends TabInterative{
             height: `${this.containerHeight}px`,
             "overflow-y": "auto",
             "overflow-x": "hidden",
-            outline: "none"
+            outline: "none",
+            "user-select": "none",
         });
         utils.setAttributes(this.domElement, {tabindex: "-1"});
 
@@ -27,39 +28,45 @@ export class Tablature extends TabInterative{
 
     render(){
         if(this.shouldDrawAll){
-            let [x, y] = this.lineStartPosition;
             for(let i = 0; i <= this.getLineNumberOfSection(this.notes.length - 1); i++){//line
-                let totalNote = 2; // 2 for clef
-                let sections = this.getSectionsNumberOfLine(i);
-                for(let j = 0; j < sections.length; j++){ // count total note of line
-                    if(this.notes[sections[j]]){
-                        let addnote = Math.max(this.basicNoteNumber, this.notes[i*this.sectionPerLine + j].length);
-                        totalNote += addnote;
-                    }else{
-                        totalNote += this.basicNoteNumber;
-                    }
-                }
-                for(let j = 0; j < sections.length; j++){ // count section position and width
-                    let sect = sections[j];
-                    if(!this.notes[sect]) break;
-                    let noteNumber = Math.max(this.basicNoteNumber, this.notes[sect].length);
-                    if(j == 0) noteNumber += 2;
-                    let width = this.lineWidth * (noteNumber) / totalNote;
-                    let stave = this.drawSection(sect, x, y, width, j === 0);
-                    this.drawNotesOfSection(stave, sect);
-                    x += width;
-                }
-                y += this.lineDistance;
-                x = this.lineStartPosition[0];
+                this.drawSectionsOfLine(i);
             }
             this.shouldDrawAll = false;
         }else{
-            this.partialRender();
+            let lines = new Set<number>();
+            for(let v of this.dritySection.values()){
+                lines.add(this.getLineNumberOfSection(v));
+            }
+            for(let l of lines.values()){
+                this.drawSectionsOfLine(l);
+            }
+            this.dritySection.clear();
         }
     }
 
-    partialRender(){
-
+    private drawSectionsOfLine(line: number){
+        let [x, y] = this.lineStartPosition;
+        y += this.lineDistance * line;
+        let totalNote = 2; // 2 for clef
+        let sections = this.getSectionsNumberOfLine(line);
+        for(let j = 0; j < sections.length; j++){ // count total note of line
+            if(this.notes[sections[j]]){
+                let addnote = Math.max(this.basicNoteNumber, this.notes[line*this.sectionPerLine + j].length);
+                totalNote += addnote;
+            }else{
+                totalNote += this.basicNoteNumber;
+            }
+        }
+        for(let j = 0; j < sections.length; j++){ // count section position and width
+            let sect = sections[j];
+            if(!this.notes[sect]) break;
+            let noteNumber = Math.max(this.basicNoteNumber, this.notes[sect].length);
+            if(j == 0) noteNumber += 2;
+            let width = this.lineWidth * (noteNumber) / totalNote;
+            let stave = this.drawSection(sect, x, y, width, j === 0);
+            this.drawNotesOfSection(stave, sect);
+            x += width;
+        }
     }
 
     private drawSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): Flow.TabStave{
