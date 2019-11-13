@@ -28,18 +28,19 @@ export class Tablature extends TabInterative{
     render(){
         if(this.shouldDrawAll){
             let [x, y] = this.lineStartPosition;
-            for(let i = 0; i < this.notes.length/this.sectionPerLine; i++){//line
+            for(let i = 0; i <= this.getLineNumberOfSection(this.notes.length - 1); i++){//line
                 let totalNote = 2; // 2 for clef
-                for(let j = 0; j < this.sectionPerLine; j++){ // count total note of line
-                    if(this.notes[i*this.sectionPerLine + j]){
+                let sections = this.getSectionsNumberOfLine(i);
+                for(let j = 0; j < sections.length; j++){ // count total note of line
+                    if(this.notes[sections[j]]){
                         let addnote = Math.max(this.basicNoteNumber, this.notes[i*this.sectionPerLine + j].length);
                         totalNote += addnote;
                     }else{
                         totalNote += this.basicNoteNumber;
                     }
                 }
-                for(let j = 0; j < this.sectionPerLine; j++){ // count section position and width
-                    let sect = i*this.sectionPerLine + j;
+                for(let j = 0; j < sections.length; j++){ // count section position and width
+                    let sect = sections[j];
                     if(!this.notes[sect]) break;
                     let noteNumber = Math.max(this.basicNoteNumber, this.notes[sect].length);
                     if(j == 0) noteNumber += 2;
@@ -102,5 +103,22 @@ export class Tablature extends TabInterative{
                 width: Number(rects[k].dataset.textWidth)
             });
         }
+    }
+
+    // line index start from 0
+    private getLineNumberOfSection(section: number){
+        return Math.floor(section / this.sectionPerLine);
+    }
+
+    private getSectionsNumberOfLine(line: number){
+        let sections = [];
+        for(let i = 0; i < this.sectionPerLine; i++) {
+            if(this.notes[line * this.sectionPerLine + i]){
+                sections.push(line * this.sectionPerLine + i);
+            }else{
+                break;
+            }
+        }
+        return sections;
     }
 }
