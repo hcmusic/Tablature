@@ -4,6 +4,7 @@ export class TabNote {
     0: number; //duration
     1: number[]; // fret
     2: any; //user data
+    tabNote: Flow.TabNote;
     constructor(data: {noteValue?: number, stringContent?: number[], userData?: any, 0?: number, 1?: number[], 2?: any} = {}){
         if(data[0]){
             this[0] = data[0];
@@ -45,7 +46,8 @@ export class TabNote {
             if(this.stringContent[i] !== -1)fret = this.stringContent[i];
             positions.push({str: i+1, fret});
         }
-        return new Flow.TabNote({positions: positions, duration: duration.toString()}, true, extendWidth);
+        this.tabNote = new Flow.TabNote({positions: positions, duration: duration.toString()}, true, extendWidth);
+        return this.tabNote;
     }
 }
 // type tabNote = {positions : {str : number, fret : number}[],
