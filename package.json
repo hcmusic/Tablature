@@ -18,8 +18,10 @@
     "@types/vexflow": "git+https://github.com/hcmusic/VexflowTypes.git",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
-    "vexflow": "git+https://github.com/hcmusic/vexflow.git",
     "webpack": "^4.39.1",
     "webpack-cli": "^3.3.8"
+  },
+  "dependencies": {
+    "vexflow": "git+https://github.com/hcmusic/vexflow.git"
   }
 }
