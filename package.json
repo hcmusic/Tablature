@@ -2,7 +2,8 @@
   "name": "tablature",
   "version": "1.0.0",
   "description": "",
-  "main": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack -d --watch",
@@ -10,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:hcmusic/Tablature.git"
+    "url": "git+https://github.com:hcmusic/Tablature.git"
   },
   "author": "",
   "devDependencies": {
-    "@types/vexflow": "git+ssh://git@github.com/hcmusic/VexflowTypes.git",
+    "@types/vexflow": "git+https://github.com/hcmusic/VexflowTypes.git",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
-    "vexflow": "git+ssh://git@github.com/hcmusic/vexflow.git",
+    "vexflow": "git+https://github.com/hcmusic/vexflow.git",
     "webpack": "^4.39.1",
     "webpack-cli": "^3.3.8"
   }
