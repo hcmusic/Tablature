@@ -35,22 +35,25 @@ export class TabNote {
         this[2] = v;
     }
 
-    makeFlowTabNote(extendWidth: number = 0){
+    makeFlowTabNote(extendWidth: number = 0, drawStem: boolean = true){
         let positions = [];
         let duration = this.noteValue;
+        let [addDot, rest] = [false, false];
         if(Math.floor(duration) != duration){
             duration = Math.round(duration * 3 / 2);
+            addDot = true;
         }
+        let ds = duration.toString();
+        if(this.userData && this.userData.rest) rest = true;
         for(let i = 0; i < 6; i++){
             let fret: string | number = "";
-            if(this.stringContent[i] !== -1)fret = this.stringContent[i];
+            if(this.stringContent[i] !== -1 && !rest)fret = this.stringContent[i];
             positions.push({str: i+1, fret});
         }
-        this.tabNote = new Flow.TabNote({positions: positions, duration: duration.toString()}, true, extendWidth);
+        if(rest) ds += "r";
+        this.tabNote = new Flow.TabNote({positions: positions, duration: ds}, !rest && drawStem, extendWidth);
+        // currently assume note with float note value as note with dot
+        if(addDot) this.tabNote.addDot();
         return this.tabNote;
     }
 }
-// type tabNote = {positions : {str : number, fret : number}[],
-//                 duration : string,
-//                 type? : string,
-//                 dots? : number,

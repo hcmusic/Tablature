@@ -13,8 +13,11 @@ export declare class TabNote {
         1?: number[];
         2?: any;
     });
-    noteValue: number;
-    stringContent: number[];
-    userData: any;
-    makeFlowTabNote(extendWidth?: number): Flow.TabNote;
+    get noteValue(): number;
+    set noteValue(l: number);
+    get stringContent(): number[];
+    set stringContent(v: number[]);
+    get userData(): any;
+    set userData(v: any);
+    makeFlowTabNote(extendWidth?: number, drawStem?: boolean): Flow.TabNote;
 }
