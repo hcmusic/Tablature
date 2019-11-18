@@ -39,11 +39,14 @@ export class TabNote {
         let positions = [];
         let duration = this.noteValue;
         let [addDot, rest] = [false, false];
+        let ds = "";
         if(Math.floor(duration) != duration){
             duration = Math.round(duration * 3 / 2);
             addDot = true;
+            ds = duration.toString() + "d";
+        }else{
+            ds = duration.toString();
         }
-        let ds = duration.toString();
         if(this.userData && this.userData.rest) rest = true;
         for(let i = 0; i < 6; i++){
             let fret: string | number = "";

@@ -134,14 +134,10 @@ export class Tablature extends TabInterative{
         let flowNotes: Flow.TabNote[] = [];
         let totalNoteLength = 0;
         for(let note of this.notes[section]){
-            let countLengthValue = note.noteValue;
-            if(Math.floor(countLengthValue) !== countLengthValue) countLengthValue = countLengthValue * 3 / 2;
-            totalNoteLength += 1/countLengthValue;
+            totalNoteLength += 1 / note.noteValue;
         }
         for(let note of this.notes[section]){
-            let countLengthValue = note.noteValue;
-            if(Math.floor(countLengthValue) !== countLengthValue) countLengthValue = countLengthValue * 3 / 2;
-            let ew = (1/countLengthValue) / totalNoteLength * (sectionWidth - 150);
+            let ew = (1 / note.noteValue) / totalNoteLength * (sectionWidth - 150);
                 flowNotes.push(note.makeFlowTabNote(ew));
         }
         this.context.createLayer(`/note/${section}`);
