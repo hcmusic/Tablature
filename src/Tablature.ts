@@ -119,9 +119,12 @@ export class Tablature extends TabInterative{
             height: this.tabStringPadding * 5,
         }
         let stave = new Flow.TabStave(x, y, width);
-        if(drawClef) stave.addClef("tab").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
-        this.context.createLayer(`/sheet/${section}`);
-        let layer = this.context.useLayer(`/sheet/${section}`);
+        if(drawClef){
+            stave.addClef("tab").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
+            this.context.useLayer("/sheet/number")
+            this.context.fillText(`section ${section + 1}`, x, y + 45, {"font-size": "8pt"});
+        }
+        let layer = this.context.useLayer(`/sheet/section-${section}`);
         layer.clear();
         stave.setContext(this.context).draw();
         return stave;
@@ -156,7 +159,7 @@ export class Tablature extends TabInterative{
                 const ni = Math.floor(k/6);
                 // data on element is top-left position and we want center position
                 const x = Number(element.getAttribute("x")) + Number(element.dataset.textWidth) / 2 + 2;
-                const y = Number(element.getAttribute("y")) + 4;
+                const y = Number(element.getAttribute("y")) + 6;
                 if(!this.calTabData.sections[section].notes[ni])
                     this.calTabData.sections[section].notes[ni] = {string: []}
                 this.calTabData.sections[section].notes[ni].string.push({
