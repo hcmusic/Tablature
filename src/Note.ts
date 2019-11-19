@@ -58,7 +58,7 @@ export class TabNote {
 export class StaveNote {
     clef: string = "";
     noteValue: number;
-    keys: string[];
+    keys: Set<string>;
     modifier: any;
     userData: any;
     staveNote: Flow.StaveNote;
@@ -68,10 +68,8 @@ export class StaveNote {
     }
 
     makeFlowStaveNote(){
-        let duration = this.noteValue;
         let [ds, addDot] = convertDuration(this.noteValue);
-
-        this.staveNote = new Flow.StaveNote({duration: ds, keys: this.keys});
+        this.staveNote = new Flow.StaveNote({duration: ds, keys: Array.from(this.keys)});
         if(addDot) this.staveNote.addDotToAll();
         return this.staveNote;
     }

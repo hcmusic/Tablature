@@ -126,10 +126,12 @@ export class TabBase{
 
     private dataToNote<T>(noteType: new (p: any) => T, data: [number, number[] | string[], any][][]): T[][]{
         let na: T[][] = [];
+        let contentString = "stringContent";
+        if(noteType.prototype === StaveNote.prototype) contentString = "keys"
         for(let i = 0; i < data.length; i++){ // section
             let newSection: T[] = [];
             for(let j = 0; j < data[i].length; j++){ // note
-                let newNote = new noteType({noteValue: data[i][j][0], stringContent: data[i][j][1], modifier: data[i][j][2]});
+                let newNote = new noteType({noteValue: data[i][j][0], [contentString]: data[i][j][1], modifier: data[i][j][2]});
                 newSection.push(newNote);
             }
             na.push(newSection);

@@ -155,7 +155,6 @@ export class Tablature extends TabInterative{
         if(!this.drawStave) return null;
         if(!this.tabNotes[section]) return null;
         let stave = new Flow.Stave(x, y , width);
-        console.log(stave);
         if(drawClef){
             stave.addClef("treble").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
             this.context.useLayer("/sheet/number")
@@ -180,13 +179,11 @@ export class Tablature extends TabInterative{
         }
         for(let note of this.tabNotes[section]){
             let ew = (1 / note.noteValue) / totalNoteLength * (sectionWidth - 150);
-                flowNotes.push(note.makeFlowTabNote(ew, !this.drawStave));
+            flowNotes.push(note.makeFlowTabNote(ew, !this.drawStave));
         }
-        this.context.createLayer(`/note/${section}`);
-        let layer = this.context.useLayer(`/note/${section}`);
+        let layer = this.context.useLayer(`/note/tab/${section}`);
         layer.clear();
         Flow.Formatter.FormatAndDraw(this.context, tab, flowNotes);
-        let rects = Array.from(layer.svg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "rect"));
         //store note geometry data and add evnet callback
         let k = 0;
         for(let i = 0; i < layer.svg.children.length; i++){
@@ -215,7 +212,18 @@ export class Tablature extends TabInterative{
     }
 
     private drawStaveNoteOfSection(stave: Flow.Stave, section: number, sectionWidth: number = 0){
-
+        let flowNotes: Flow.StaveNote[] = [];
+        let totalNoteLength = 0;
+        for(let note of this.tabNotes[section]){
+            totalNoteLength += 1 / note.noteValue;
+        }
+        for(let note of this.staveNotes[section]){
+            let ew = (1 / note.noteValue) / totalNoteLength * (sectionWidth - 150);
+                flowNotes.push(note.makeFlowStaveNote());
+        }
+        let layer = this.context.useLayer(`/note/stave/${section}`);
+        layer.clear();
+        Flow.Formatter.FormatAndDraw(this.context, stave, flowNotes);
     }
 
     // line index start from 0
