@@ -69,13 +69,13 @@ export class Tablature extends TabInterative{
             this.shouldDrawAll = false;
         }else{
             let lines = new Set<number>();
-            for(let v of this.dritySection.values()){
+            for(let v of this.dirtySection.values()){
                 lines.add(this.getLineNumberOfSection(v));
             }
             for(let l of lines.values()){
                 this.drawSectionsOfLine(l);
             }
-            this.dritySection.clear();
+            this.dirtySection.clear();
         }
     }
 

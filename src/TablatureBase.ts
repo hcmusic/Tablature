@@ -22,7 +22,7 @@ interface CalTab {
 export class TabBase{
     tabNotes: TabSection[];
     staveNotes: StaveSection[];
-    protected dritySection: Set<number> = new Set([]);
+    protected dirtySection: Set<number> = new Set([]);
     protected shouldDrawAll = true;
     //todo: do a stricter check for these function
     // data: [noteValue, fret of each string, modifier][][]
@@ -45,14 +45,14 @@ export class TabBase{
     
     setNoteData(section: number, note: number, data: TabNote){
         this.tabNotes[section][note] = data;
-        this.dritySection.add(section);
+        this.dirtySection.add(section);
     }
 
     setStringDataOfNote(section: number, note: number, string: number, data: number){
         if(string >=0 && string <= 5){
             this.tabNotes[section][note][1][string] = data;
         }
-        this.dritySection.add(section);
+        this.dirtySection.add(section);
     }
 
     getSectionData(section: number): TabNote[]{
@@ -61,7 +61,7 @@ export class TabBase{
 
     deleteNote(section: number, note: number, number: number = 1): TabNote[]{
         let dn = this.tabNotes[section].splice(note, number);
-        if(dn.length > 0)this.dritySection.add(section);
+        if(dn.length > 0)this.dirtySection.add(section);
         return dn;
     }
 
@@ -74,7 +74,7 @@ export class TabBase{
             note = this.tabNotes[section].length;
         }
         this.tabNotes[section].splice(note, 0, data);
-        this.dritySection.add(section);
+        this.dirtySection.add(section);
         return [section, note];
     }
 
@@ -102,7 +102,7 @@ export class TabBase{
         }
         this.tabNotes.splice(section, 0, data);
         for(let i = section; i < this.tabNotes.length; i++){
-            this.dritySection.add(section + i);
+            this.dirtySection.add(section + i);
         }
         return true;
     }
