@@ -1,5 +1,6 @@
 import { Flow } from "vexflow"
 export type TabSection = TabNote[];
+export type StaveSection = StaveNote[];
 export class TabNote {
     0: number; //duration
     1: number[]; // fret
@@ -37,16 +38,9 @@ export class TabNote {
 
     makeFlowTabNote(extendWidth: number = 0, drawStem: boolean = true){
         let positions = [];
-        let duration = this.noteValue;
-        let [addDot, rest] = [false, false];
-        let ds = "";
-        if(Math.floor(duration) != duration){
-            duration = Math.round(duration * 3 / 2);
-            addDot = true;
-            ds = duration.toString() + "d";
-        }else{
-            ds = duration.toString();
-        }
+        let rest = false;
+        let [ds, addDot] = convertDuration(this.noteValue);
+
         if(this.userData && this.userData.rest) rest = true;
         for(let i = 0; i < 6; i++){
             let fret: string | number = "";
@@ -59,4 +53,36 @@ export class TabNote {
         if(addDot) this.tabNote.addDot();
         return this.tabNote;
     }
+}
+
+export class StaveNote {
+    clef: string;
+    noteValue: number;
+    keys: string[];
+    midifiers: any;
+    userData: any;
+    staveNote: Flow.StaveNote;
+
+    makeFlowStaveNote(){
+        let duration = this.noteValue;
+        let [ds, addDot] = convertDuration(this.noteValue);
+
+        this.staveNote = new Flow.StaveNote({duration: ds, keys: this.keys});
+        if(addDot) this.staveNote.addDotToAll();
+        return this.staveNote;
+    }
+}
+
+// conver duration number to string with modifier and decide if need dot
+function convertDuration(duration: number): [string, boolean]{
+    let addDot = false;
+    let ds = "";
+    if(Math.floor(duration) != duration){
+        duration = Math.round(duration * 3 / 2);
+        addDot = true;
+        ds = duration.toString() + "d";
+    }else{
+        ds = duration.toString();
+    }
+    return [ds, addDot];
 }
