@@ -25,7 +25,7 @@ export class TabBase{
     protected dritySection: Set<number> = new Set([]);
     protected shouldDrawAll = true;
     //todo: do a stricter check for these function
-    // data: [noteValue, fret of each string, userData][][]
+    // data: [noteValue, fret of each string, modifier][][]
     setTabData(data: [number, number[], any][][]) {
         this.clearData();
         this.tabNotes = this.dataToNote(TabNote, data);
@@ -129,7 +129,7 @@ export class TabBase{
         for(let i = 0; i < data.length; i++){ // section
             let newSection: T[] = [];
             for(let j = 0; j < data[i].length; j++){ // note
-                let newNote = new noteType({noteValue: data[i][j][0], stringContent: data[i][j][1], userData: data[i][j][2]});
+                let newNote = new noteType({noteValue: data[i][j][0], stringContent: data[i][j][1], modifier: data[i][j][2]});
                 newSection.push(newNote);
             }
             na.push(newSection);
