@@ -56,12 +56,16 @@ export class TabNote {
 }
 
 export class StaveNote {
-    clef: string;
+    clef: string = "";
     noteValue: number;
     keys: string[];
     midifiers: any;
     userData: any;
     staveNote: Flow.StaveNote;
+
+    constructor(data: {noteValue: number, keys: string[], modifiers?: any, userData?: any}){
+        Object.assign(this, data);
+    }
 
     makeFlowStaveNote(){
         let duration = this.noteValue;

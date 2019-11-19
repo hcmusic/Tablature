@@ -1,5 +1,5 @@
 import { utils } from "./utils"
-import { TabSection, TabNote, StaveNote } from "./Note"
+import { TabSection, TabNote, StaveNote, StaveSection } from "./Note"
 import { Flow } from "vexflow"
 
 interface CalTab {
@@ -21,21 +21,21 @@ interface CalTab {
 
 export class TabBase{
     tabNotes: TabSection[];
+    staveNotes: StaveSection[];
     protected dritySection: Set<number> = new Set([]);
     protected shouldDrawAll = true;
     //todo: do a stricter check for these function
+    // data: [noteValue, fret of each string, userData][][]
     setTabData(data: [number, number[], any][][]) {
         this.clearData();
-        let na: TabNote[][] = [];
-        for(let i = 0; i < data.length; i++){
-            let newSection: TabNote[] = [];
-            for(let j = 0; j < data[i].length; j++){
-                let newNote = new TabNote({noteValue: data[i][j][0], stringContent: data[i][j][1], userData: data[i][j][2]});
-                newSection.push(newNote);
-            }
-            na.push(newSection);
-        }
-        this.tabNotes = na;
+        this.tabNotes = this.dataToNote(TabNote, data);
+        this.shouldDrawAll = true;
+    }
+
+    // data: [noteValue, keys, modifier][][]
+    setStaveData(data: [number, string[], any][][]){
+        this.clearData();
+        this.staveNotes = this.dataToNote(StaveNote, data);
         this.shouldDrawAll = true;
     }
 
@@ -124,6 +124,18 @@ export class TabBase{
         this.shouldDrawAll = true;
     }
 
+    private dataToNote<T>(noteType: new (p: any) => T, data: [number, number[] | string[], any][][]): T[][]{
+        let na: T[][] = [];
+        for(let i = 0; i < data.length; i++){ // section
+            let newSection: T[] = [];
+            for(let j = 0; j < data[i].length; j++){ // note
+                let newNote = new noteType({noteValue: data[i][j][0], stringContent: data[i][j][1], userData: data[i][j][2]});
+                newSection.push(newNote);
+            }
+            na.push(newSection);
+        }
+        return na;
+    }
 }
 
 export class TabView extends TabBase{
