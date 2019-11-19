@@ -61,7 +61,7 @@ export class Tablature extends TabInterative{
 
     render(){
         if(this.shouldDrawAll){
-            for(let i = 0; i <= this.getLineNumberOfSection(this.notes.length - 1); i++){//line
+            for(let i = 0; i <= this.getLineNumberOfSection(this.tabNotes.length - 1); i++){//line
                 this.drawSectionsOfLine(i);
             }
             this.shouldDrawAll = false;
@@ -89,8 +89,8 @@ export class Tablature extends TabInterative{
         let totalNote = 2; // 2 for clef
         let sections = this.getSectionsNumberOfLine(line);
         for(let j = 0; j < sections.length; j++){ // count total note of line
-            if(this.notes[sections[j]]){
-                let addnote = Math.max(this.basicNoteNumber, this.notes[line*this.sectionPerLine + j].length);
+            if(this.tabNotes[sections[j]]){
+                let addnote = Math.max(this.basicNoteNumber, this.tabNotes[line*this.sectionPerLine + j].length);
                 totalNote += addnote;
             }else{
                 totalNote += this.basicNoteNumber;
@@ -98,8 +98,8 @@ export class Tablature extends TabInterative{
         }
         for(let j = 0; j < sections.length; j++){ // count section position and width
             let sect = sections[j];
-            if(!this.notes[sect]) break;
-            let noteNumber = Math.max(this.basicNoteNumber, this.notes[sect].length);
+            if(!this.tabNotes[sect]) break;
+            let noteNumber = Math.max(this.basicNoteNumber, this.tabNotes[sect].length);
             if(j == 0) noteNumber += 2;
             let width = this.lineWidth * (noteNumber) / totalNote;
             let stave = this.drawSection(sect, x, y, width, j === 0);
@@ -109,10 +109,10 @@ export class Tablature extends TabInterative{
     }
 
     private drawSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): Flow.TabStave{
-        if(!this.notes[section]) return;
+        if(!this.tabNotes[section]) return;
         //store section geometry data
         this.calTabData.sections[section] = {
-            notes: [],
+            tabNotes: [],
             x: x,
             y: y,
             width: width,
@@ -133,10 +133,10 @@ export class Tablature extends TabInterative{
     private drawNotesOfSection(stave: Flow.TabStave, section: number, sectionWidth: number = 0){
         let flowNotes: Flow.TabNote[] = [];
         let totalNoteLength = 0;
-        for(let note of this.notes[section]){
+        for(let note of this.tabNotes[section]){
             totalNoteLength += 1 / note.noteValue;
         }
-        for(let note of this.notes[section]){
+        for(let note of this.tabNotes[section]){
             let ew = (1 / note.noteValue) / totalNoteLength * (sectionWidth - 150);
                 flowNotes.push(note.makeFlowTabNote(ew));
         }
@@ -156,10 +156,10 @@ export class Tablature extends TabInterative{
                 // data on element is top-left position and we want center position
                 const x = Number(element.getAttribute("x")) + Number(element.dataset.textWidth) / 2 + 2;
                 const y = Number(element.getAttribute("y")) + 6;
-                if(!this.calTabData.sections[section].notes[ni])
-                    this.calTabData.sections[section].notes[ni] = {string: []}
-                this.calTabData.sections[section].notes[ni].string.push({
-                    fret: this.notes[section][ni].stringContent[k%6],
+                if(!this.calTabData.sections[section].tabNotes[ni])
+                    this.calTabData.sections[section].tabNotes[ni] = {string: []}
+                this.calTabData.sections[section].tabNotes[ni].string.push({
+                    fret: this.tabNotes[section][ni].stringContent[k%6],
                     x: x, 
                     y: y, 
                     width: Number(element.dataset.textWidth)
@@ -180,7 +180,7 @@ export class Tablature extends TabInterative{
     private getSectionsNumberOfLine(line: number){
         let sections = [];
         for(let i = 0; i < this.sectionPerLine; i++) {
-            if(this.notes[line * this.sectionPerLine + i]){
+            if(this.tabNotes[line * this.sectionPerLine + i]){
                 sections.push(line * this.sectionPerLine + i);
             }else{
                 break;

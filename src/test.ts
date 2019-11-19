@@ -1,34 +1,41 @@
+import { TabNote } from "./Note"
+import * as Vex from "vexflow";
 import { Tablature } from "./Tablature";
 
 var div = document.getElementById("boo")
 let testTab = new Tablature();
 let data: [number, number[], any][][] = [
     [ //section
+        [4, [36, -1, -1, 4, -1, -1], null],// note length, [fret number, index is string number,], user data
+        [16/3, [3, 5, 2, -1, -1, -1], {rest: true}],
+        [2, [-1, 5, 2, -1, -1, -1], {rest: true}],
+        [16, [-1, 5, 2, -1, -1, -1], null],
+        [4, [-1, 5, 2, -1, -1, -1], {rest: true}],
+    ],
+    [ //section
         [4, [3, -1, -1, 4, -1, -1], null],// note length, [fret number, index is string number,], user data
         [4, [3, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
+        [8, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
     ],
     [ //section
         [4, [3, -1, -1, 4, -1, -1], null],// note length, [fret number, index is string number,], user data
         [4, [3, 5, 2, -1, -1, -1], null],
         [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
-    ],
-    [ //section
-        [4, [3, -1, -1, 4, -1, -1], null],// note length, [fret number, index is string number,], user data
-        [4, [3, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
-        [4, [-1, 5, 2, -1, -1, -1], null],
         [8, [-1, 5, 2, -1, -1, -1], null],
     ]
 ];
-testTab.setData(data);
+testTab.setTabData(data);
 testTab.attach(div);
 testTab.render();
-
+function exportToWindow(n:string, e: any){
+    (window as any)[n] = e;
+}
+(window as any).testTab = testTab;
+(window as any).TabNote = TabNote;
+(window as any).Vex = Vex;
 // renderer.resize(1300, 500);
 // var context = <Vex.Flow.SVGContext>(renderer.getContext());
 // context.setFont("Arial", 10, 12).setBackgroundFillStyle("rgba(255,0,0,0.5)");
@@ -39,7 +46,7 @@ testTab.render();
 // let svgGroupArray: SVGElement[] = [];
 // var stave = new VF.TabStave(pos[0], pos[1], 300);
 // stave.addClef("tab").addTimeSignature("4/4")
-// var notes: Vex.Flow.TabNote[][] = [[]];
+// var tabNotes: Vex.Flow.TabNote[][] = [[]];
 // context.createLayer("stave");
 // context.createLayer("note");
 // context.useLayer("stave");
@@ -49,8 +56,8 @@ testTab.render();
 // context.useLayer("note");
 // let sg = 0;
 // function x(){
-//     if(notes[secctionNumber - 1].length >= 8){
-//         notes.push([]);
+//     if(tabNotes[secctionNumber - 1].length >= 8){
+//         tabNotes.push([]);
 //         if(secctionNumber%4==0){
 //             pos[0] = 10;
 //             pos[1] += 120;
@@ -71,9 +78,9 @@ testTab.render();
 //     if(svgGroupArray[secctionNumber - 1])((<any>context).layer.svgElement as SVGElement).removeChild(svgGroupArray[secctionNumber - 1]);
 //     let newNote = new VF.TabNote({positions: [{str: 5, fret: "999"}], duration: "4", dots: 4}, true, 15);
 //     sg++;
-//     notes[secctionNumber - 1].push(newNote);
+//     tabNotes[secctionNumber - 1].push(newNote);
 //     let group = ((context as any).openGroup()) as SVGElement;
-//     VF.Formatter.FormatAndDraw(context, stave, notes[secctionNumber - 1]);
+//     VF.Formatter.FormatAndDraw(context, stave, tabNotes[secctionNumber - 1]);
 //     (context as any).closeGroup();
 //     svgGroupArray[secctionNumber - 1] = group;
 //     document.documentElement.scrollTop+=1000

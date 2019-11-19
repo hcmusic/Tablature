@@ -1,10 +1,10 @@
 import { utils } from "./utils"
-import { TabSection, TabNote } from "./Note"
+import { TabSection, TabNote, StaveNote } from "./Note"
 import { Flow } from "vexflow"
 
 interface CalTab {
     sections: {
-        notes: {
+        tabNotes: {
             string: {
                 fret: number;
                 x: number;
@@ -20,11 +20,11 @@ interface CalTab {
 }
 
 export class TabBase{
-    notes: TabSection[];
+    tabNotes: TabSection[];
     protected dritySection: Set<number> = new Set([]);
     protected shouldDrawAll = true;
     //todo: do a stricter check for these function
-    setData(data: [number, number[], any][][]) {
+    setTabData(data: [number, number[], any][][]) {
         this.clearData();
         let na: TabNote[][] = [];
         for(let i = 0; i < data.length; i++){
@@ -35,52 +35,52 @@ export class TabBase{
             }
             na.push(newSection);
         }
-        this.notes = na;
+        this.tabNotes = na;
         this.shouldDrawAll = true;
     }
 
     getNoteData(section: number, note: number): TabNote{
-        return this.notes[section][note];
+        return this.tabNotes[section][note];
     }
     
     setNoteData(section: number, note: number, data: TabNote){
-        this.notes[section][note] = data;
+        this.tabNotes[section][note] = data;
         this.dritySection.add(section);
     }
 
     setStringDataOfNote(section: number, note: number, string: number, data: number){
         if(string >=0 && string <= 5){
-            this.notes[section][note][1][string] = data;
+            this.tabNotes[section][note][1][string] = data;
         }
         this.dritySection.add(section);
     }
 
     getSectionData(section: number): TabNote[]{
-        return this.notes[section];
+        return this.tabNotes[section];
     }
 
     deleteNote(section: number, note: number, number: number = 1): TabNote[]{
-        let dn = this.notes[section].splice(note, number);
+        let dn = this.tabNotes[section].splice(note, number);
         if(dn.length > 0)this.dritySection.add(section);
         return dn;
     }
 
     addNote(section: number, note: number, data: TabNote): [number, number]{
-        if(section === -1 || section >= this.notes.length){
-            section = this.notes.length;
-            this.notes.push([]);
+        if(section === -1 || section >= this.tabNotes.length){
+            section = this.tabNotes.length;
+            this.tabNotes.push([]);
         }
-        if(note === -1 || note > this.notes[section].length){
-            note = this.notes[section].length;
+        if(note === -1 || note > this.tabNotes[section].length){
+            note = this.tabNotes[section].length;
         }
-        this.notes[section].splice(note, 0, data);
+        this.tabNotes[section].splice(note, 0, data);
         this.dritySection.add(section);
         return [section, note];
     }
 
     isBlankNote(section: number, note: number){
         for(let i = 0; i < 6; i++){
-            if(this.notes[section][note][1][i] != -1){
+            if(this.tabNotes[section][note][1][i] != -1){
                 return false;
             }
         }
@@ -88,31 +88,31 @@ export class TabBase{
     }
 
     getNoteNumberOfSection(section: number){
-        if(!this.notes[section])return -1;
-        return this.notes[section].length;
+        if(!this.tabNotes[section])return -1;
+        return this.tabNotes[section].length;
     }
 
     getSectionNumber(){
-        return this.notes.length;
+        return this.tabNotes.length;
     }
 
     insertSection(section: number, data: TabSection = []): boolean{
-        if(section < 0 || section > this.notes.length){
+        if(section < 0 || section > this.tabNotes.length){
             return false;
         }
-        this.notes.splice(section, 0, data);
-        for(let i = section; i < this.notes.length; i++){
+        this.tabNotes.splice(section, 0, data);
+        for(let i = section; i < this.tabNotes.length; i++){
             this.dritySection.add(section + i);
         }
         return true;
     }
 
     getNoteFlattenNumber(section: number, note: number): number{
-        if(!this.notes[section]) return -1;
-        // if(note === -1) note = this.notes[section].length - 1;
-        if(this.notes[section][note]){
+        if(!this.tabNotes[section]) return -1;
+        // if(note === -1) note = this.tabNotes[section].length - 1;
+        if(this.tabNotes[section][note]){
             let total = 0;
-            for(let i = 0; i < section; i++) total += this.notes[i].length;
+            for(let i = 0; i < section; i++) total += this.tabNotes[i].length;
             total += note;
             return total;
         }
@@ -120,7 +120,7 @@ export class TabBase{
     }
 
     clearData(){
-        this.notes = [[]];
+        this.tabNotes = [[]];
         this.shouldDrawAll = true;
     }
 
@@ -154,21 +154,21 @@ export class TabView extends TabBase{
     
 
     getSectionLeftTopPos(section: number): [number, number]{
-        if(section < this.notes.length){
+        if(section < this.tabNotes.length){
             return [this.calTabData.sections[section].x, this.calTabData.sections[section].y];
         }
         return [-1, -1]
     }
 
     getSectionWidth(section: number): number{
-        if(section < this.notes.length){
+        if(section < this.tabNotes.length){
             return this.calTabData.sections[section].width;
         }
         return 0;
     }
 
     getSectionHeight(section: number): number{
-        if(section < this.notes.length){
+        if(section < this.tabNotes.length){
             return this.calTabData.sections[section].height;
         }
         return 0;
@@ -180,11 +180,11 @@ export class TabView extends TabBase{
     }
 
     // noteIndex(note: SVGNote){
-    //     return this.tabCanvas.layers.notes.noteElements.indexOf(note);
+    //     return this.tabCanvas.layers.tabNotes.noteElements.indexOf(note);
     // }
 
     // getSVGNote(section: number, note: number): SVGNote{
-    //     let noteElements = this.tabCanvas.layers.notes.noteElements;
+    //     let noteElements = this.tabCanvas.layers.tabNotes.noteElements;
     //     return noteElements.find((elem) => {
     //         return elem.section == section && elem.note == note
     //     })
@@ -192,16 +192,16 @@ export class TabView extends TabBase{
 
     getNotePosition(section: number, note: number, string: number = 0): [number, number]{
         let sum = 0;
-        if(!this.calTabData.sections[section] || !this.calTabData.sections[section].notes[note])
+        if(!this.calTabData.sections[section] || !this.calTabData.sections[section].tabNotes[note])
             return [-1, -1];
 
-        let sel = this.calTabData.sections[section].notes[note].string[string];
+        let sel = this.calTabData.sections[section].tabNotes[note].string[string];
         return [sel.x, sel.y];
     }
 
     clearData(){
         super.clearData();
-        //this.tabCanvas.layers.notes.removeNote(0, this.tabCanvas.layers.notes.noteElements.length);
+        //this.tabCanvas.layers.tabNotes.removeNote(0, this.tabCanvas.layers.tabNotes.noteElements.length);
     }
 
 }
@@ -221,12 +221,12 @@ export class TabInterative extends TabView{
         }
     }
         /**
-     * Drag and drog area select notes
+     * Drag and drog area select tabNotes
      * Bad implement by now, the function search each note to find collision
      * Algorithm will be fixed in future.
      */
     // areaSelect(x1: number, y1: number, x2: number, y2: number){
-    //     let noteElements = this.tabCanvas.layers.notes.noteElements;
+    //     let noteElements = this.tabCanvas.layers.tabNotes.noteElements;
     //     var selectedNoteIds: number[] = [];
     //     let leftSelectedNote: number;
     //     let rightSelectedNote: number;
@@ -253,11 +253,11 @@ export class TabInterative extends TabView{
     //         tail = head;
     //         head = temp;
     //     }
-    //     return this.tabCanvas.layers.notes.noteElements.slice(head, tail+1);
+    //     return this.tabCanvas.layers.tabNotes.noteElements.slice(head, tail+1);
     // }
 
     // headToEndSelect(head: number): SVGNote[]{
-    //     return this.tabCanvas.layers.notes.noteElements.slice(head, this.tabCanvas.layers.notes.noteElements.length);
+    //     return this.tabCanvas.layers.tabNotes.noteElements.slice(head, this.tabCanvas.layers.tabNotes.noteElements.length);
     // }
     
     // addNote(section: number, note: number, data: Note): [number, number]{
