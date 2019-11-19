@@ -23,6 +23,8 @@ export class Tablature extends TabInterative{
     readonly beatPerSection: number = 4;
     private callbacks: Callbacks;
     private basicNoteNumber = 8; // mini note number for every section to calculate width;
+    private drawTab = true;
+    private drawStave = true;
     constructor(data?: {lengthPerBeat?: number, beatPerSection?: number, lineWidth?: number, sectionPerLine?: number, linePerPage?: number}){
         super();
         Object.assign(this, data);
@@ -102,14 +104,30 @@ export class Tablature extends TabInterative{
             let noteNumber = Math.max(this.basicNoteNumber, this.tabNotes[sect].length);
             if(j == 0) noteNumber += 2;
             let width = this.lineWidth * (noteNumber) / totalNote;
-            let stave = this.drawSection(sect, x, y, width, j === 0);
-            this.drawNotesOfSection(stave, sect, width);
+            let [stave, tab] = this.drawSection(sect, x, y, width, j === 0);
+            this.drawNotesOfSection(stave, tab, sect, width);
             x += width;
         }
     }
 
-    private drawSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): Flow.TabStave{
+    private drawSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): [Flow.Stave, Flow.TabStave] {
         if(!this.tabNotes[section]) return;
+        //store section geometry data
+        let stave:Flow.Stave = null, tab: Flow.TabStave = null;
+        if(this.drawStave){
+            stave = this.drawStaveSection(section, x, y, width, drawClef);
+            if(this.drawTab){
+                tab = this.drawTabSection(section, x, y + 80, width, drawClef);
+            }
+        }else if(this.drawTab){
+            tab = this.drawTabSection(section, x, y, width, drawClef)
+        }
+        return [stave, tab];
+    }
+
+    private drawTabSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): Flow.TabStave{
+        if(!this.drawTab) return null;
+        if(!this.tabNotes[section]) return null;
         //store section geometry data
         this.calTabData.sections[section] = {
             tabNotes: [],
@@ -118,19 +136,43 @@ export class Tablature extends TabInterative{
             width: width,
             height: this.tabStringPadding * 5,
         }
-        let stave = new Flow.TabStave(x, y, width);
+        let tab = new Flow.TabStave(x, y, width);
+        let stave = new Flow.Stave(x, y , width);
         if(drawClef){
-            stave.addClef("tab").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
-            this.context.useLayer("/sheet/number")
-            this.context.fillText(`section ${section + 1}`, x, y + 45, {"font-size": "8pt"});
+            tab.addClef("tab").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
+            this.context.useLayer("/sheet/number");
+            if(!this.drawStave){
+                this.context.fillText(`section ${section + 1}`, x, y + 45, {"font-size": "8pt"});
+            }
         }
-        let layer = this.context.useLayer(`/sheet/section-${section}`);
+        let layer = this.context.useLayer(`/sheet/tab/section-${section}`);
+        layer.clear();
+        tab.setContext(this.context).draw();
+        return tab;
+    }
+    
+    private drawStaveSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): Flow.Stave{
+        if(!this.drawStave) return null;
+        if(!this.tabNotes[section]) return null;
+        let stave = new Flow.Stave(x, y , width);
+        console.log(stave);
+        if(drawClef){
+            stave.addClef("treble").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
+            this.context.useLayer("/sheet/number")
+            this.context.fillText(`section ${section + 1}`, x, y + 15, {"font-size": "8pt"});
+        }
+        let layer = this.context.useLayer(`/sheet/stave/section-${section}`);
         layer.clear();
         stave.setContext(this.context).draw();
         return stave;
     }
 
-    private drawNotesOfSection(stave: Flow.TabStave, section: number, sectionWidth: number = 0){
+    private drawNotesOfSection(stave: Flow.Stave, tab: Flow.TabStave, section: number, sectionWidth: number = 0){
+        if(stave) this.drawStaveNoteOfSection(stave, section, sectionWidth);
+        if(tab) this.drawTabNoteOfSection(tab, section, sectionWidth);
+    }
+
+    private drawTabNoteOfSection(tab: Flow.TabStave, section: number, sectionWidth: number = 0){
         let flowNotes: Flow.TabNote[] = [];
         let totalNoteLength = 0;
         for(let note of this.tabNotes[section]){
@@ -138,12 +180,12 @@ export class Tablature extends TabInterative{
         }
         for(let note of this.tabNotes[section]){
             let ew = (1 / note.noteValue) / totalNoteLength * (sectionWidth - 150);
-                flowNotes.push(note.makeFlowTabNote(ew));
+                flowNotes.push(note.makeFlowTabNote(ew, !this.drawStave));
         }
         this.context.createLayer(`/note/${section}`);
         let layer = this.context.useLayer(`/note/${section}`);
         layer.clear();
-        Flow.Formatter.FormatAndDraw(this.context, stave, flowNotes);
+        Flow.Formatter.FormatAndDraw(this.context, tab, flowNotes);
         let rects = Array.from(layer.svg.getElementsByTagNameNS("http://www.w3.org/2000/svg", "rect"));
         //store note geometry data and add evnet callback
         let k = 0;
@@ -170,6 +212,10 @@ export class Tablature extends TabInterative{
                 k++;
             }
         }
+    }
+
+    private drawStaveNoteOfSection(stave: Flow.Stave, section: number, sectionWidth: number = 0){
+
     }
 
     // line index start from 0
