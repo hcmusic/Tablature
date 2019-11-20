@@ -3,19 +3,8 @@ import { TabInterative } from "./TablatureBase"
 import { utils, Callbacks } from "./utils"
 
 interface eventCallBackInterface {
-    noteclick: (section: number , note: number , string: number, position: number[], currentTarget: SVGElement) => any;
-    keydown: (key: string, keyCode: number) => any;
-    mouseovernote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
-    mouseoutnote: (section: number , note: number , string: number, position: number[], currentTarget: HTMLElement) => any;
-    noteshiftclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
-    notealtclick: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
-    notectrlclcik: (section: number, note: number, string: number, position: number[], currentTarget: HTMLElement) => any;
-    mousedown: (x: number, y: number) => any;
-    mousemove: (x: number, y: number) => any;
-    mouseup: (x: number, y: number) => any;
-    sectionhover: (section: number) => any;
-    sectionhout: (section: number) => any;
-    sectionclick: (section: number, string: number) => any;
+    tabnoteclick: (section: number , note: number , string: number, position: number[], currentTarget: SVGElement) => any;
+    stavenoteclick: (section: number, note: number, key: string, position: number[], currentTarget: SVGElement) => any;
 }
 
 export class Tablature extends TabInterative{
@@ -39,20 +28,8 @@ export class Tablature extends TabInterative{
         });
         utils.setAttributes(this.domElement, {tabindex: "-1"});
         this.callbacks = new Callbacks([
-            "noteclick", 
-            "noteshiftclick", 
-            "notealtclick", 
-            "notectrlclick",
-            "keydown", 
-            "mouseovernote", 
-            "mouseoutnote", 
-            "mousedown", 
-            "mousemove", 
-            "mouseup",
-            "rightclick",
-            "sectionhover",
-            "sectionhout",
-            "sectionclick",
+            "tabnoteclick",
+            "stavenoteclick"
         ]);
 
         this.renderer.resize(this.width, 600);
@@ -204,7 +181,7 @@ export class Tablature extends TabInterative{
                     width: Number(element.dataset.textWidth)
                 });
                 element.addEventListener("click", ev => {
-                    this.callbacks["noteclick"].callAll(section, ni, k%6, [x, y], ev.currentTarget);
+                    this.callbacks["tabnoteclick"].callAll(section, ni, k%6, [x, y], ev.currentTarget);
                 })
                 k++;
             }
@@ -219,11 +196,25 @@ export class Tablature extends TabInterative{
         }
         for(let note of this.staveNotes[section]){
             let ew = (1 / note.noteValue) / totalNoteLength * (sectionWidth - 150);
-                flowNotes.push(note.makeFlowStaveNote());
+            flowNotes.push(note.makeFlowStaveNote());
         }
         let layer = this.context.useLayer(`/note/stave/${section}`);
         layer.clear();
         Flow.Formatter.FormatAndDraw(this.context, stave, flowNotes);
+        //set click event and store geometry data
+        for(let i = 0; i < this.staveNotes[section].length; i++){
+            for(let drawnNoteHead of this.staveNotes[section][i].staveNote.drawnNoteHead){
+                drawnNoteHead.addEventListener("click", ev => {
+                    this.callbacks["stavenoteclick"].callAll(
+                        section,
+                        i,
+                        drawnNoteHead.dataset.key,
+                        [Number(drawnNoteHead.dataset.x), Number(drawnNoteHead.dataset.y)],
+                        drawnNoteHead
+                    );
+                })
+            }
+        }
     }
 
     // line index start from 0
