@@ -1,5 +1,5 @@
 import { Flow } from "vexflow";
-import { TabInterative } from "./TablatureBase"
+import { TabInterative, Position } from "./TablatureBase"
 import { utils, Callbacks } from "./utils"
 
 interface eventCallBackInterface {
@@ -131,6 +131,13 @@ export class Tablature extends TabInterative{
     private drawStaveSection(section: number, x: number, y: number, width: number, drawClef: boolean = false): Flow.Stave{
         if(!this.drawStave) return null;
         if(!this.tabNotes[section]) return null;
+        this.calStaveData.sections[section] = {
+            staveNotes: [],
+            x: x,
+            y: y,
+            width: width,
+            height: this.staveStringPadding * 5,
+        }
         let stave = new Flow.Stave(x, y , width);
         if(drawClef){
             stave.addClef("treble").addTimeSignature(`${this.beatPerSection}/${this.lengthPerBeat}`);
@@ -174,12 +181,12 @@ export class Tablature extends TabInterative{
                 const y = Number(element.getAttribute("y")) + 6;
                 if(!this.calTabData.sections[section].tabNotes[ni])
                     this.calTabData.sections[section].tabNotes[ni] = {string: []}
-                this.calTabData.sections[section].tabNotes[ni].string.push({
+                this.calTabData.sections[section].tabNotes[ni].string[k%6] = {
                     fret: this.tabNotes[section][ni].stringContent[k%6],
                     x: x, 
                     y: y, 
                     width: Number(element.dataset.textWidth)
-                });
+                };
                 element.addEventListener("click", ev => {
                     this.callbacks["tabnoteclick"].callAll(section, ni, k%6, [x, y], ev.currentTarget);
                 })
@@ -204,14 +211,14 @@ export class Tablature extends TabInterative{
         //set click event and store geometry data
         for(let i = 0; i < this.staveNotes[section].length; i++){
             for(let drawnNoteHead of this.staveNotes[section][i].staveNote.drawnNoteHead){
+                let key = drawnNoteHead.dataset.key;
+                let x = Number(drawnNoteHead.dataset.x);
+                let y = Number(drawnNoteHead.dataset.y);
+                if(!this.calStaveData.sections[section].staveNotes[i])
+                    this.calStaveData.sections[section].staveNotes[i] = {keys: new Map<string, Position>()};
+                this.calStaveData.sections[section].staveNotes[i].keys.set(key, {x: x, y: y});
                 drawnNoteHead.addEventListener("click", ev => {
-                    this.callbacks["stavenoteclick"].callAll(
-                        section,
-                        i,
-                        drawnNoteHead.dataset.key,
-                        [Number(drawnNoteHead.dataset.x), Number(drawnNoteHead.dataset.y)],
-                        drawnNoteHead
-                    );
+                    this.callbacks["stavenoteclick"].callAll(section, i, key, [x, y], drawnNoteHead);
                 })
             }
         }
