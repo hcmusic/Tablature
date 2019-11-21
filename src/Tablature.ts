@@ -1,5 +1,5 @@
 import { Flow } from "vexflow";
-import { TabInterative, Position } from "./TablatureBase"
+import { TabInterative, Position, StringGeometry } from "./TablatureBase"
 import { utils, Callbacks } from "./utils"
 
 interface eventCallBackInterface {
@@ -169,28 +169,44 @@ export class Tablature extends TabInterative{
         layer.clear();
         Flow.Formatter.FormatAndDraw(this.context, tab, flowNotes);
         //store note geometry data and add evnet callback
-        let k = 0;
+        let k = -1;
         for(let i = 0; i < layer.svg.children.length; i++){
             let element = layer.svg.children[i] as SVGElement;
             if(element.tagName === "text"){
                 utils.setStyle(element, {"pointer-events": "none"});
             }else if(element.tagName === "rect"){
+                k++;
                 const ni = Math.floor(k/6);
                 // data on element is top-left position and we want center position
                 const x = Number(element.getAttribute("x")) + Number(element.dataset.textWidth) / 2 + 2;
                 const y = Number(element.getAttribute("y")) + 6;
                 if(!this.calTabData.sections[section].tabNotes[ni])
-                    this.calTabData.sections[section].tabNotes[ni] = {string: []}
-                this.calTabData.sections[section].tabNotes[ni].string[k%6] = {
-                    fret: this.tabNotes[section][ni].stringContent[k%6],
-                    x: x, 
-                    y: y, 
-                    width: Number(element.dataset.textWidth)
-                };
+                    this.calTabData.sections[section].tabNotes[ni] = {strings: new Map<number, StringGeometry>()};
+                
+                if(this.tabNotes[section][ni].modifier && this.tabNotes[section][ni].modifier.rest){
+                    if(k%6 === 2){
+                        this.calTabData.sections[section].tabNotes[ni].strings.set(2, {
+                            fret: -2,
+                            x: x, 
+                            y: y, 
+                            width: Number(element.dataset.textWidth)
+                        });
+                    }else{
+                        continue;
+                    }
+                }else{
+                    if(this.tabNotes[section][ni].stringContent[k%6] !== -1){
+                        this.calTabData.sections[section].tabNotes[ni].strings.set(k%6, {
+                            fret: this.tabNotes[section][ni].stringContent[k%6],
+                            x: x, 
+                            y: y, 
+                            width: Number(element.dataset.textWidth)
+                        });
+                    }
+                }
                 element.addEventListener("click", ev => {
                     this.callbacks["tabnoteclick"].callAll(section, ni, k%6, [x, y], ev.currentTarget);
                 })
-                k++;
             }
         }
     }

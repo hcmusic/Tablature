@@ -3,7 +3,7 @@ export type TabSection = TabNote[];
 export type StaveSection = StaveNote[];
 export class TabNote {
     0: number; //duration
-    1: number[]; // fret
+    1: number[]; // fret, content including -2 means rest note, content with all -1 means ghost notes
     2: any; //modifier
     tabNote: Flow.TabNote;
     constructor(data: {noteValue?: number, stringContent?: number[], modifier?: any, 0?: number, 1?: number[], 2?: any} = {}){
@@ -44,10 +44,14 @@ export class TabNote {
         if(this.modifier && this.modifier.rest) rest = true;
         for(let i = 0; i < 6; i++){
             let fret: string | number = "";
-            if(this.stringContent[i] !== -1 && !rest)fret = this.stringContent[i];
+            if(rest)this.stringContent[i] = -1;
+            if(this.stringContent[i] !== -1)fret = this.stringContent[i];
             positions.push({str: i+1, fret});
         }
-        if(rest) ds += "r";
+        if(rest){
+            ds += "r";
+            this.stringContent[2] = -2;
+        }
         this.tabNote = new Flow.TabNote({positions: positions, duration: ds}, !rest && drawStem, extendWidth);
         // currently assume note with float note value as note with dot
         if(addDot) this.tabNote.addDot();

@@ -6,15 +6,18 @@ export interface Position {
     x: number,
     y: number,
 }
+
+export interface StringGeometry {
+    fret: number;
+    x: number;
+    y: number;
+    width: number;
+}
+
 interface CalTab {
     sections: {
         tabNotes: {
-            string: {
-                fret: number;
-                x: number;
-                y: number;
-                width: number;
-            }[];
+            strings: Map<number, StringGeometry>
         }[];
         x: number;
         y: number;
