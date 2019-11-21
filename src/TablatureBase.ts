@@ -2,6 +2,10 @@ import { utils } from "./utils"
 import { TabSection, TabNote, StaveNote, StaveSection } from "./Note"
 import { Flow } from "vexflow"
 
+export interface Position {
+    x: number,
+    y: number,
+}
 interface CalTab {
     sections: {
         tabNotes: {
@@ -19,6 +23,18 @@ interface CalTab {
     }[];  
 }
 
+interface CalStave {
+    sections: {
+        staveNotes:{
+            keys: Map<string, Position>;
+        }[];
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }[];
+}
+
 export class TabBase{
     tabNotes: TabSection[];
     staveNotes: StaveSection[];
@@ -27,14 +43,14 @@ export class TabBase{
     //todo: do a stricter check for these function
     // data: [noteValue, fret of each string, modifier][][]
     setTabData(data: [number, number[], any][][]) {
-        this.clearData();
+        //this.clearData();
         this.tabNotes = this.dataToNote(TabNote, data);
         this.shouldDrawAll = true;
     }
 
     // data: [noteValue, keys, modifier][][]
     setStaveData(data: [number, string[], any][][]){
-        this.clearData();
+        //this.clearData();
         this.staveNotes = this.dataToNote(StaveNote, data);
         this.shouldDrawAll = true;
     }
@@ -144,11 +160,13 @@ export class TabView extends TabBase{
     renderer: Flow.Renderer;
     context: Flow.SVGContext;
     calTabData: CalTab = { sections: []};
+    calStaveData: CalStave = {sections: []};
     domElement: HTMLElement;
     readonly containerHeight: number = 700;
     protected lineWidth: number = 1000;
     protected sectionPerLine: number = 4;
     protected tabStringPadding: number = 13; // distance between each string, just a reference number here, it is set in vexflow
+    protected staveStringPadding: number = 10; // as above
     protected linePerPage: number = 20;
     protected lineMargin: number = 42; // only for left and right
     protected linePadding: [number, number] = [32, 14];
