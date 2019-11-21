@@ -230,7 +230,7 @@ export class TabView extends TabBase{
         if(!this.calTabData.sections[section] || !this.calTabData.sections[section].tabNotes[note])
             return [-1, -1];
 
-        let sel = this.calTabData.sections[section].tabNotes[note].string[string];
+        let sel = this.calTabData.sections[section].tabNotes[note].strings.get(string);
         return [sel.x, sel.y];
     }
 
